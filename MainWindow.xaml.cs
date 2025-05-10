@@ -250,6 +250,10 @@ namespace Framer
             SizeToContent = SizeToContent.WidthAndHeight;
             Top = Settings1.Default.windowTop;
             Left = Settings1.Default.windowLeft;
+            TBox_OutputFolder.Text = Settings1.Default.saveFolder;
+            TB_Color_Back.Text = Settings1.Default.backColor;
+            TB_Color_Font.Text = Settings1.Default.fontColor;
+            CB_Font.SelectedIndex = Settings1.Default.fontIndex;
         }
 
         public List<MyFonts> GetFonts()
