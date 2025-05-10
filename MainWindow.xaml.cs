@@ -68,20 +68,40 @@ namespace Framer
             }
 
             int baseWidth = orgImg.Width;
-            int baseHight = orgImg.Height;
-            int frameSize = (int)(baseHight * 0.04);
+            int baseHeight = orgImg.Height;
+
+            // フレームのサイズを計算
+            int frameSize = (int)(baseHeight * 0.04);
             int framedImgWidth = baseWidth + (2 * frameSize);
-            int framedImgHeight = (int)(framedImgWidth * 0.8);
+            int framedImgHeight;
+            int textAreaHeight;
+            int textRectHeight;
+            int textCenter;
+            if ((double)baseWidth/(double)baseHeight < 1.5)
+            {
+                textAreaHeight =(int)( baseHeight * 0.144);
+                framedImgHeight = (int)(baseHeight * (0.04 * 3 + 1)) + textAreaHeight;
+                textRectHeight = textAreaHeight / 2;
+            }
+            else
+            {
+                framedImgHeight = (int)(framedImgWidth * 0.8);
+                textAreaHeight = (framedImgHeight - baseHeight - (3 * frameSize));
+            }
+            textCenter = (frameSize * 2) + baseHeight + (textAreaHeight / 2);
+            textRectHeight = (int)(textAreaHeight * 0.5 * 0.6);
 
             using Bitmap framedImg = new(framedImgWidth, framedImgHeight);// 背景の作成
             using Graphics grp = Graphics.FromImage(framedImg);
             grp.Clear(System.Drawing.Color.FromArgb(MyProperties.BackColorARBG));
 
             // EXIF情報を取得
-            string text1 = "写真にフレームとEXIFを付けるソフト";// Shot on Z6II + Z50mm f1.4
-            string text2 = "頑張って作ってるからほめてくれ";// ISO100 f2.8 SS=1/100
 
             var metadata = (BitmapMetadata)BitmapFrame.Create(new Uri(imgPath)).Metadata;
+            //var fullExifData = metadata.GetQuery("/app1/ifd/exif");
+            //var fullIfdData = metadata.GetQuery("/app1/ifd");
+            //var fullGpsData = metadata.GetQuery("/app1/ifd/gps");
+
             string camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}");
             camera = ModelNameReplace(camera);
             var shutter = GetExifValue(metadata, 0x829A, "rational");
@@ -92,9 +112,6 @@ namespace Framer
 
             // 文字入れ
 
-            int textAreaHeight = (framedImgHeight - orgImg.Height - (3 * frameSize));
-            int textRectHeight = (int)(textAreaHeight * 0.5 * 0.6);
-            int textCenter = (frameSize * 2) + baseHight + (textAreaHeight / 2);
 
             MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
             using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeight * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel);
@@ -139,7 +156,7 @@ namespace Framer
             grp.DrawString(str2, font2, brush, rect2, strFormat1);
 
             //フレームに画像を貼り付け
-            grp.DrawImage(orgImg, frameSize, frameSize, baseWidth, baseHight);
+            grp.DrawImage(orgImg, frameSize, frameSize, baseWidth, baseHeight);
 
             // 画像の保存
             if (!isPortrait)
@@ -149,7 +166,11 @@ namespace Framer
 
             EncoderParameters encoder = new(1);
             encoder.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)98);// JPEGの品質を設定
-            framedImg.Save(NameGen(savePath, orgName), MyProperties.jpgCodecInfo, encoder);
+            string saveFullName = NameGen(savePath, orgName);
+            framedImg.Save(saveFullName, MyProperties.jpgCodecInfo, encoder);
+
+            // exif情報を保存
+            
 
             static string NameGen(string foderPath, string name)
             {
@@ -186,7 +207,7 @@ namespace Framer
                         byte[] bytes2 = BitConverter.GetBytes((UInt64)raw);
                         int val3 = BitConverter.ToInt32(bytes2, 0);
                         int val4 = BitConverter.ToInt32(bytes2, 4);
-                        return Convert.ToString((double)(val3 / val4));
+                        return Convert.ToString(((double)val3 / (double)val4));
                     default:
                         return string.Empty;
                 }
@@ -194,6 +215,11 @@ namespace Framer
 
             static string ModelNameReplace(string str)
             {
+                if(string.IsNullOrEmpty(str))
+                {
+                    return string.Empty;
+                }
+
                 List<string[]> replace = new() {
                     (string[])["Z 6_2", "Z6II"],
                     (string[])["Z 6_3", "Z6III"],
