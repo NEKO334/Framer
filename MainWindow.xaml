@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Framer"
         mc:Ignorable="d"
-        Title="Framer 1.00"
+        Title="Framer"
         Height="auto" Width="auto"
         MinHeight=" 20" MinWidth="450"
         AllowDrop="True"  Drop="Grid_Drop"

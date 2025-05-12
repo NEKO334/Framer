@@ -1,16 +1,12 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Drawing;
-using System.Drawing.Imaging;
 
 namespace Framer
 {
@@ -77,9 +73,9 @@ namespace Framer
             int textAreaHeight;
             int textRectHeight;
             int textCenter;
-            if ((double)baseWidth/(double)baseHeight < 1.5)
+            if ((double)baseWidth / (double)baseHeight < 1.5)
             {
-                textAreaHeight =(int)( baseHeight * 0.144);
+                textAreaHeight = (int)(baseHeight * 0.144);
                 framedImgHeight = (int)(baseHeight * (0.04 * 3 + 1)) + textAreaHeight;
                 textRectHeight = textAreaHeight / 2;
             }
@@ -104,11 +100,50 @@ namespace Framer
 
             string camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}");
             camera = ModelNameReplace(camera);
-            var shutter = GetExifValue(metadata, 0x829A, "rational");
-            var fNumber = GetExifValue(metadata, 0x829D, "fraction");
-            var iso = GetExifValue(metadata, 0x8827, "string");
-            var focalLength = GetExifValue(metadata, 0x920A, "fraction");
             var rens = GetExifValue(metadata, 0xA434, "string");
+
+            string shutter = GetExifValue(metadata, 0x829A, "rational");
+            if (!string.IsNullOrEmpty(shutter))
+            {
+                shutter = "SS=" + shutter;
+            }
+            string fNumber = GetExifValue(metadata, 0x829D, "fraction");
+            if (!string.IsNullOrEmpty(fNumber))
+            {
+                fNumber = "f/" + fNumber;
+            }
+            string iso = GetExifValue(metadata, 0x8827, "string");
+            if (!string.IsNullOrEmpty(iso))
+            {
+                iso = "ISO=" + iso;
+            }
+            string focalLength = GetExifValue(metadata, 0x920A, "fraction");
+            if (!string.IsNullOrEmpty(focalLength))
+            {
+                focalLength = focalLength + "mm";
+            }
+
+            string str1;
+            if (string.IsNullOrEmpty(camera) || string.IsNullOrEmpty(rens))
+            {
+                str1 = camera + rens;
+            }
+            else
+            {
+                str1 = $"{camera} + {rens}";
+            }
+
+            string str2 = string.Empty;
+            List<string> strList = new();
+            foreach (string item in new[] { focalLength , fNumber, iso, shutter })
+            {
+                if (!string.IsNullOrEmpty(item))
+                {
+                    strList.Add(item);
+                }
+            }
+            str2 = string.Join(" | ", strList);
+
 
             // 文字入れ
 
@@ -125,34 +160,7 @@ namespace Framer
             System.Drawing.Rectangle rect1 = new(0, textCenter - textRectHeight, baseWidth, textRectHeight);
             System.Drawing.Rectangle rect2 = new(0, textCenter, baseWidth, textRectHeight);
 
-            string str1;
-            if (string.IsNullOrEmpty(camera) || string.IsNullOrEmpty(rens))
-            {
-                str1 = camera + rens;
-            }
-            else
-            {
-                str1 = $"{camera} + {rens}";
-            }
             grp.DrawString($"shot on  {str1}", font1, brush, rect1, strFormat1);
-
-            string str2 = "";
-            if (!string.IsNullOrEmpty(focalLength))
-            {
-                str2 = $"{focalLength}mm";
-            }
-            if (!string.IsNullOrEmpty(iso))
-            {
-                str2 = str2 + $" ISO={iso}";
-            }
-            if (!string.IsNullOrEmpty(fNumber))
-            {
-                str2 = str2 + $" f/{fNumber}";
-            }
-            if (!string.IsNullOrEmpty(shutter))
-            {
-                str2 = str2 + $" SS={shutter}";
-            }
             grp.DrawString(str2, font2, brush, rect2, strFormat1);
 
             //フレームに画像を貼り付け
@@ -170,7 +178,7 @@ namespace Framer
             framedImg.Save(saveFullName, MyProperties.jpgCodecInfo, encoder);
 
             // exif情報を保存
-            
+            // めんどくさいので後回し
 
             static string NameGen(string foderPath, string name)
             {
@@ -215,7 +223,7 @@ namespace Framer
 
             static string ModelNameReplace(string str)
             {
-                if(string.IsNullOrEmpty(str))
+                if (string.IsNullOrEmpty(str))
                 {
                     return string.Empty;
                 }
@@ -253,14 +261,14 @@ namespace Framer
 
         public void SetUp()
         {
+            Title = "Framer - Ver." + Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
             if (!Settings1.Default.isUpdate)
             {
                 Settings1.Default.Upgrade();
                 Settings1.Default.isUpdate = true;
                 Settings1.Default.Save();
             }
-
-
 
             if (MyProperties.isTestMode)
             {

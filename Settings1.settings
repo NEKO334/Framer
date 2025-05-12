@@ -6,10 +6,10 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="backColor" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">7f7f7f</Value>
     </Setting>
     <Setting Name="fontColor" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">000000</Value>
     </Setting>
     <Setting Name="fontIndex" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>

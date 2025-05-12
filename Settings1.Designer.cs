@@ -37,7 +37,7 @@ namespace Framer {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7f7f7f")]
         public string backColor {
             get {
                 return ((string)(this["backColor"]));
@@ -49,7 +49,7 @@ namespace Framer {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("000000")]
         public string fontColor {
             get {
                 return ((string)(this["fontColor"]));

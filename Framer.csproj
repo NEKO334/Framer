@@ -2,10 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Copyright>Arata Suzuki</Copyright>
+    <VersionPrefix>1.0.3</VersionPrefix>
+    <VersionSuffix>unstable</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
