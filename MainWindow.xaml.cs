@@ -67,25 +67,28 @@ namespace Framer
             int baseHeight = orgImg.Height;
 
             // フレームのサイズを計算
-            int frameSize = (int)(baseHeight * 0.04);
+            double frameSizeRatio = 0.04;
+            int frameSize = (int)(baseHeight * frameSizeRatio);
             int framedImgWidth = baseWidth + (2 * frameSize);
+
             int framedImgHeight;
-            int textAreaHeight;
-            int textRectHeight;
-            int textCenter;
-            if ((double)baseWidth / (double)baseHeight < 1.5)
+            int textAreaHeight; // 文字入れエリアのサイズ
+            int textAreaY = baseHeight + (frameSize * 2); // 文字入れエリアのY座標
+            int textCenterY;
+            if (baseWidth / baseHeight < 1.5)// 縦長の場合
             {
                 textAreaHeight = (int)(baseHeight * 0.144);
-                framedImgHeight = (int)(baseHeight * (0.04 * 3 + 1)) + textAreaHeight;
-                textRectHeight = textAreaHeight / 2;
+                framedImgHeight = baseHeight+ (frameSize * 3) + textAreaHeight;
             }
             else
             {
                 framedImgHeight = (int)(framedImgWidth * 0.8);
-                textAreaHeight = (framedImgHeight - baseHeight - (3 * frameSize));
+                textAreaHeight = framedImgHeight - textAreaY - frameSize;
             }
-            textCenter = (frameSize * 2) + baseHeight + (textAreaHeight / 2);
-            textRectHeight = (int)(textAreaHeight * 0.5 * 0.6);
+
+            int textRectHeght = (int)(textAreaHeight * 0.5);
+            textCenterY = (frameSize * 2) + baseHeight + (textAreaHeight / 2);
+            //int textRectY = (int)(textAreaHeight * 0.5 * 0.6);
 
             using Bitmap framedImg = new(framedImgWidth, framedImgHeight);// 背景の作成
             using Graphics grp = Graphics.FromImage(framedImg);
@@ -147,21 +150,26 @@ namespace Framer
 
             // 文字入れ
 
-
+            int textSize;
             MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
-            using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeight * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel);
-            using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeight * 0.65), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel);
+            using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeght * 0.6), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
+            using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeght * 0.6 * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
             var brush = new SolidBrush(System.Drawing.Color.FromArgb(MyProperties.FontColorARGB));
 
             StringFormat strFormat1 = new();
             strFormat1.Alignment = StringAlignment.Center;
-            strFormat1.LineAlignment = StringAlignment.Center;
+            strFormat1.LineAlignment = StringAlignment.Far; //下揃え
 
-            System.Drawing.Rectangle rect1 = new(0, textCenter - textRectHeight, baseWidth, textRectHeight);
-            System.Drawing.Rectangle rect2 = new(0, textCenter, baseWidth, textRectHeight);
+            StringFormat strFormat2 = new();
+            strFormat2.Alignment = StringAlignment.Center;
+            strFormat2.LineAlignment = StringAlignment.Near;
 
-            grp.DrawString($"shot on  {str1}", font1, brush, rect1, strFormat1);
-            grp.DrawString(str2, font2, brush, rect2, strFormat1);
+            int offset = (int)(textRectHeght * 0.05);
+            System.Drawing.Rectangle rect1 = new(0, textAreaY - offset, baseWidth, textRectHeght);
+            System.Drawing.Rectangle rect2 = new(0, textAreaY + textRectHeght + offset, baseWidth + textRectHeght, textRectHeght);
+
+            grp.DrawString(str1, font1, brush, rect1, strFormat1);
+            grp.DrawString(str2, font2, brush, rect2, strFormat2);
 
             //フレームに画像を貼り付け
             grp.DrawImage(orgImg, frameSize, frameSize, baseWidth, baseHeight);

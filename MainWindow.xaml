@@ -26,13 +26,18 @@
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Content="フォント" Width="100"/>
-                <ComboBox x:Name="CB_Font" ItemsSource="{Binding}" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center">
+                <ComboBox x:Name="CB_Font" ItemsSource="{Binding}" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center" FontSize="14">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding fontName}" FontFamily="{Binding fontFamily}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <Label Content="フォントサイズ" Width="100"/>
+                <TextBox x:Name="TB_FontSize" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1"/>
+                <Label Content="%"/>
             </DockPanel>
             <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" Height="100"  FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="BIZ UDPMincho Medium"/>
         </DockPanel>
