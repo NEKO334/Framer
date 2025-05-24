@@ -21,13 +21,15 @@ namespace Framer
             public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
             //public static readonly string[] SupportedImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
 
-            public static int BackColorARBG;
-            public static int FontColorARGB;
+            public static int? BackColorARBG;
+            public static int? FontColorARGB;
+            public static int? FontSize; // フォントサイズ
 
             static MyProperties()
             {
                 BackColorARBG = -1;
                 FontColorARGB = -1;
+                FontSize = -1;
             }
         }
 
@@ -47,8 +49,9 @@ namespace Framer
         {
             if (string.IsNullOrEmpty(imgPath)
                 || !File.Exists(imgPath)
-                || MyProperties.BackColorARBG == -1
-                || MyProperties.FontColorARGB == -1)
+                || MyProperties.BackColorARBG == null
+                || MyProperties.FontColorARGB == null
+                || MyProperties.FontSize == null)
             {
                 return;
             }
@@ -92,7 +95,7 @@ namespace Framer
 
             using Bitmap framedImg = new(framedImgWidth, framedImgHeight);// 背景の作成
             using Graphics grp = Graphics.FromImage(framedImg);
-            grp.Clear(System.Drawing.Color.FromArgb(MyProperties.BackColorARBG));
+            grp.Clear(System.Drawing.Color.FromArgb((int)MyProperties.BackColorARBG));
 
             // EXIF情報を取得
 
@@ -149,12 +152,12 @@ namespace Framer
 
 
             // 文字入れ
-
-            int textSize;
+            
+            double fontSize = textRectHeght * (double)MyProperties.FontSize / 100;
             MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
-            using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeght * 0.6), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
-            using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(textRectHeght * 0.6 * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
-            var brush = new SolidBrush(System.Drawing.Color.FromArgb(MyProperties.FontColorARGB));
+            using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)fontSize, System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
+            using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(fontSize * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
+            var brush = new SolidBrush(System.Drawing.Color.FromArgb((int)MyProperties.FontColorARGB));
 
             StringFormat strFormat1 = new();
             strFormat1.Alignment = StringAlignment.Center;
@@ -181,7 +184,7 @@ namespace Framer
             }
 
             EncoderParameters encoder = new(1);
-            encoder.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)98);// JPEGの品質を設定
+            encoder.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)99);// JPEGの品質を設定
             string saveFullName = NameGen(savePath, orgName);
             framedImg.Save(saveFullName, MyProperties.jpgCodecInfo, encoder);
 
@@ -217,8 +220,8 @@ namespace Framer
                     case "rational":
                         byte[] bytes1 = BitConverter.GetBytes((UInt64)raw);
                         int val1 = BitConverter.ToInt32(bytes1, 0);
-                        int val2 = BitConverter.ToInt32(bytes1, 4);
-                        return $"{val1}/{val2}";
+                        int val2 = BitConverter.ToInt32(bytes1, 4) / val1;
+                        return $"1/{val2}";
                     case "fraction":
                         byte[] bytes2 = BitConverter.GetBytes((UInt64)raw);
                         int val3 = BitConverter.ToInt32(bytes2, 0);
@@ -281,9 +284,7 @@ namespace Framer
             if (MyProperties.isTestMode)
             {
                 this.Title = "Framer - Test Mode";
-                TBox_OutputFolder.Text = System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), @"TestOutput");
-                TB_Color_Back.Text = Settings1.Default.backColor;
-                TB_Color_Font.Text = Settings1.Default.fontColor;
+                TB_OutputFolder.Text = System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), @"TestOutput");
             }
 
             DataContext = GetFonts();
@@ -292,10 +293,11 @@ namespace Framer
             SizeToContent = SizeToContent.WidthAndHeight;
             Top = Settings1.Default.windowTop;
             Left = Settings1.Default.windowLeft;
-            TBox_OutputFolder.Text = Settings1.Default.saveFolder;
+            TB_OutputFolder.Text = Settings1.Default.saveFolder;
             TB_Color_Back.Text = Settings1.Default.backColor;
             TB_Color_Font.Text = Settings1.Default.fontColor;
             CB_Font.SelectedIndex = Settings1.Default.fontIndex;
+            TB_FontSize.Text = Settings1.Default.fontSize.ToString();
         }
 
         public List<MyFonts> GetFonts()
@@ -329,7 +331,7 @@ namespace Framer
 
         private void TBox_OutputFolder_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            System.Diagnostics.Process.Start("EXPLORER.EXE", TBox_OutputFolder.Text);
+            System.Diagnostics.Process.Start("EXPLORER.EXE", TB_OutputFolder.Text);
         }
 
         private void TB_Color_Back_TextChanged(object sender, TextChangedEventArgs e)
@@ -344,7 +346,7 @@ namespace Framer
             }
             else
             {
-                MyProperties.BackColorARBG = -1;
+                MyProperties.BackColorARBG = null;
                 Lb_ColorCheck.Background = new SolidColorBrush(Colors.Transparent);
                 TB_Color_Back.Foreground = new SolidColorBrush(Colors.Red);
             }
@@ -362,7 +364,7 @@ namespace Framer
             }
             else
             {
-                MyProperties.FontColorARGB = -1;
+                MyProperties.FontColorARGB = null;
                 Lb_ColorCheck.Foreground = new SolidColorBrush(Colors.Black);
                 TB_Color_Font.Foreground = new SolidColorBrush(Colors.Red);
             }
@@ -373,7 +375,12 @@ namespace Framer
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                string savePath = TBox_OutputFolder.Text;
+                string savePath = TB_OutputFolder.Text;
+
+                if(string.IsNullOrEmpty(savePath))
+                {
+                    return;
+                }
 
                 if (!System.IO.Directory.Exists(savePath))
                 {
@@ -400,15 +407,36 @@ namespace Framer
             Lb_ColorCheck.FontFamily = f.fontFamily;
         }
 
+
+        private void TB_FontSize_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            int size;
+            if (int.TryParse(TB_FontSize.Text, out size))
+            {
+                MyProperties.FontSize = size;
+                TB_FontSize.Foreground = new SolidColorBrush(Colors.Black);
+            }
+            else
+            {
+                MyProperties.FontSize = null;
+                TB_FontSize.Foreground = new SolidColorBrush(Colors.Red);
+            }
+        }
+        
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Settings1.Default.windowLeft = Left;
             Settings1.Default.windowTop = Top;
-            Settings1.Default.saveFolder = TBox_OutputFolder.Text;
+            Settings1.Default.saveFolder = TB_OutputFolder.Text;
             Settings1.Default.backColor = TB_Color_Back.Text;
             Settings1.Default.fontColor = TB_Color_Font.Text;
             Settings1.Default.fontIndex = CB_Font.SelectedIndex;
             Settings1.Default.Save();
+        }
+
+        private void TB_OutputFolder_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TB_OutputFolder.Text = TB_OutputFolder.Text.Trim(System.IO.Path.GetInvalidFileNameChars());
         }
     }
 }

@@ -14,7 +14,7 @@
         <DockPanel LastChildFill="True">
             <DockPanel DockPanel.Dock="Top" LastChildFill="True">
                 <Label Content="出力フォルダ" Width="100"/>
-                <TextBox x:Name="TBox_OutputFolder" VerticalContentAlignment="Center" MinWidth="200" MouseDoubleClick="TBox_OutputFolder_MouseDoubleClick" Margin="0,1,0,1"/>
+                <TextBox x:Name="TB_OutputFolder" VerticalContentAlignment="Center" MinWidth="200" MouseDoubleClick="TBox_OutputFolder_MouseDoubleClick" Margin="0,1,0,1" TextChanged="TB_OutputFolder_TextChanged"/>
             </DockPanel>
             <DockPanel  DockPanel.Dock="Top">
                 <Label Content="背景色[RBG]" Width="100"/>
@@ -36,7 +36,7 @@
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Content="フォントサイズ" Width="100"/>
-                <TextBox x:Name="TB_FontSize" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1"/>
+                <TextBox x:Name="TB_FontSize" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1" TextChanged="TB_FontSize_TextChanged"/>
                 <Label Content="%"/>
             </DockPanel>
             <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" Height="100"  FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="BIZ UDPMincho Medium"/>
