@@ -15,15 +15,33 @@ namespace Framer
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>
+        /// アプリケーションのプロパティを保持するクラス
+        /// </summary>
         public static class MyProperties
         {
             public static readonly bool isTestMode = false;
+
+            /// <summary>
+            /// JPEGエンコーダの情報を取得するための静的プロパティ
+            /// </summary>
             public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
             //public static readonly string[] SupportedImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
 
+            /// <summary>
+            /// 背景色のARGB値
+            /// </summary>
             public static int? BackColorARBG;
+
+            /// <summary>
+            /// フォント色のARGB値
+            /// </summary>
             public static int? FontColorARGB;
-            public static int? FontSize; // フォントサイズ
+
+            /// <summary>
+            /// フォントサイズのパーセント値（0-100）
+            /// </summary>
+            public static int? FontSize;
 
             static MyProperties()
             {
@@ -33,11 +51,13 @@ namespace Framer
             }
         }
 
-
+        /// <summary>
+        /// フォント情報を保持するクラス
+        /// </summary>
         public class MyFonts
         {
-            public System.Windows.Media.FontFamily fontFamily { get; set; }// フォントファミリー
-            public string fontName { get; set; }// フォント名
+            public System.Windows.Media.FontFamily? fontFamily { get; set; }// フォントファミリー
+            public string? fontName { get; set; }// フォント名
         }
 
         /// <summary>
@@ -45,7 +65,7 @@ namespace Framer
         /// </summary>
         /// <param name="imgPath">元画像のパス</param>
         /// <param name="savePath">保存先</param>
-        private void AddFrame(string imgPath, string savePath)
+        private bool AddFrame(string imgPath, string savePath)
         {
             if (string.IsNullOrEmpty(imgPath)
                 || !File.Exists(imgPath)
@@ -53,7 +73,7 @@ namespace Framer
                 || MyProperties.FontColorARGB == null
                 || MyProperties.FontSize == null)
             {
-                return;
+                return false;
             }
 
             string orgName = System.IO.Path.GetFileName(imgPath);
@@ -73,17 +93,18 @@ namespace Framer
             double frameSizeRatio = 0.04;
             int frameSize = (int)(baseHeight * frameSizeRatio);
             int framedImgWidth = baseWidth + (2 * frameSize);
-
             int framedImgHeight;
+
             int textAreaHeight; // 文字入れエリアのサイズ
             int textAreaY = baseHeight + (frameSize * 2); // 文字入れエリアのY座標
-            int textCenterY;
-            if (baseWidth / baseHeight < 1.5)// 縦長の場合
+            int textCenterY; // 文字入れエリアの中央Y座標
+
+            if (baseWidth / baseHeight < 1.5) // 縦長の場合
             {
                 textAreaHeight = (int)(baseHeight * 0.144);
-                framedImgHeight = baseHeight+ (frameSize * 3) + textAreaHeight;
+                framedImgHeight = baseHeight + (frameSize * 3) + textAreaHeight;
             }
-            else
+            else // 横長の場合
             {
                 framedImgHeight = (int)(framedImgWidth * 0.8);
                 textAreaHeight = framedImgHeight - textAreaY - frameSize;
@@ -91,91 +112,92 @@ namespace Framer
 
             int textRectHeght = (int)(textAreaHeight * 0.5);
             textCenterY = (frameSize * 2) + baseHeight + (textAreaHeight / 2);
-            //int textRectY = (int)(textAreaHeight * 0.5 * 0.6);
 
-            using Bitmap framedImg = new(framedImgWidth, framedImgHeight);// 背景の作成
-            using Graphics grp = Graphics.FromImage(framedImg);
-            grp.Clear(System.Drawing.Color.FromArgb((int)MyProperties.BackColorARBG));
+            using Bitmap framedImg = new(framedImgWidth, framedImgHeight); // フレームの画像を作成
+            using (Graphics grp = Graphics.FromImage(framedImg))
+            {
+                grp.Clear(System.Drawing.Color.FromArgb((int)MyProperties.BackColorARBG)); // 背景色を設定
 
-            // EXIF情報を取得
 
-            var metadata = (BitmapMetadata)BitmapFrame.Create(new Uri(imgPath)).Metadata;
-            //var fullExifData = metadata.GetQuery("/app1/ifd/exif");
-            //var fullIfdData = metadata.GetQuery("/app1/ifd");
-            //var fullGpsData = metadata.GetQuery("/app1/ifd/gps");
+                // EXIF情報を取得
 
-            string camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}");
-            camera = ModelNameReplace(camera);
-            var rens = GetExifValue(metadata, 0xA434, "string");
+                var metadata = (BitmapMetadata)BitmapFrame.Create(new Uri(imgPath)).Metadata;
+                //var fullExifData = metadata.GetQuery("/app1/ifd/exif");
+                //var fullIfdData = metadata.GetQuery("/app1/ifd");
+                //var fullGpsData = metadata.GetQuery("/app1/ifd/gps");
 
-            string shutter = GetExifValue(metadata, 0x829A, "rational");
-            if (!string.IsNullOrEmpty(shutter))
-            {
-                shutter = "SS=" + shutter;
-            }
-            string fNumber = GetExifValue(metadata, 0x829D, "fraction");
-            if (!string.IsNullOrEmpty(fNumber))
-            {
-                fNumber = "f/" + fNumber;
-            }
-            string iso = GetExifValue(metadata, 0x8827, "string");
-            if (!string.IsNullOrEmpty(iso))
-            {
-                iso = "ISO=" + iso;
-            }
-            string focalLength = GetExifValue(metadata, 0x920A, "fraction");
-            if (!string.IsNullOrEmpty(focalLength))
-            {
-                focalLength = focalLength + "mm";
-            }
-
-            string str1;
-            if (string.IsNullOrEmpty(camera) || string.IsNullOrEmpty(rens))
-            {
-                str1 = camera + rens;
-            }
-            else
-            {
-                str1 = $"{camera} + {rens}";
-            }
-
-            string str2 = string.Empty;
-            List<string> strList = new();
-            foreach (string item in new[] { focalLength , fNumber, iso, shutter })
-            {
-                if (!string.IsNullOrEmpty(item))
+                string camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}");
+                camera = ModelNameReplace(camera);
+                string shutter = GetExifValue(metadata, 0x829A, "rational");
+                if (!string.IsNullOrEmpty(shutter))
                 {
-                    strList.Add(item);
+                    shutter = "SS=" + shutter;
                 }
+                string fNumber = GetExifValue(metadata, 0x829D, "fraction");
+                if (!string.IsNullOrEmpty(fNumber))
+                {
+                    fNumber = "f/" + fNumber;
+                }
+                string iso = GetExifValue(metadata, 0x8827, "string");
+                if (!string.IsNullOrEmpty(iso))
+                {
+                    iso = "ISO=" + iso;
+                }
+                string focalLength = GetExifValue(metadata, 0x920A, "fraction");
+                if (!string.IsNullOrEmpty(focalLength))
+                {
+                    focalLength = focalLength + "mm";
+                }
+
+                string str1;
+                string rens = GetExifValue(metadata, 0xA434, "string");
+                if (string.IsNullOrEmpty(camera) || string.IsNullOrEmpty(rens))
+                {
+                    str1 = camera + rens;
+                }
+                else
+                {
+                    str1 = $"{camera} + {rens}";
+                }
+
+                string str2 = string.Empty;
+                List<string> strList = new();
+                foreach (string item in new[] { focalLength, fNumber, iso, shutter })
+                {
+                    if (!string.IsNullOrEmpty(item))
+                    {
+                        strList.Add(item);
+                    }
+                }
+                str2 = string.Join(" | ", strList);
+
+
+                // 文字入れ
+                double fontSize = textRectHeght * (double)MyProperties.FontSize / 100;
+                using (SolidBrush brush = new(System.Drawing.Color.FromArgb((int)MyProperties.FontColorARGB)))
+                {
+                    using StringFormat strFormat1 = new();
+                    strFormat1.Alignment = StringAlignment.Center;
+                    strFormat1.LineAlignment = StringAlignment.Far; //下揃え
+
+                    using StringFormat strFormat2 = new();
+                    strFormat2.Alignment = StringAlignment.Center;
+                    strFormat2.LineAlignment = StringAlignment.Near;
+
+                    int offset = (int)(textRectHeght * 0.05);
+                    System.Drawing.Rectangle rect1 = new(0, textAreaY - offset, baseWidth, textRectHeght);
+                    System.Drawing.Rectangle rect2 = new(0, textAreaY + textRectHeght + offset, baseWidth + textRectHeght, textRectHeght);
+
+                    MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
+                    using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)fontSize, System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
+                    grp.DrawString(str1, font1, brush, rect1, strFormat1);
+                    using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(fontSize * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
+                    grp.DrawString(str2, font2, brush, rect2, strFormat2);
+                }
+
+                //フレームに画像を貼り付け
+                grp.DrawImage(orgImg, frameSize, frameSize, baseWidth, baseHeight);
             }
-            str2 = string.Join(" | ", strList);
-
-
-            // 文字入れ
-            
-            double fontSize = textRectHeght * (double)MyProperties.FontSize / 100;
-            MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
-            using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)fontSize, System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
-            using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(fontSize * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
-            var brush = new SolidBrush(System.Drawing.Color.FromArgb((int)MyProperties.FontColorARGB));
-
-            StringFormat strFormat1 = new();
-            strFormat1.Alignment = StringAlignment.Center;
-            strFormat1.LineAlignment = StringAlignment.Far; //下揃え
-
-            StringFormat strFormat2 = new();
-            strFormat2.Alignment = StringAlignment.Center;
-            strFormat2.LineAlignment = StringAlignment.Near;
-
-            int offset = (int)(textRectHeght * 0.05);
-            System.Drawing.Rectangle rect1 = new(0, textAreaY - offset, baseWidth, textRectHeght);
-            System.Drawing.Rectangle rect2 = new(0, textAreaY + textRectHeght + offset, baseWidth + textRectHeght, textRectHeght);
-
-            grp.DrawString(str1, font1, brush, rect1, strFormat1);
-            grp.DrawString(str2, font2, brush, rect2, strFormat2);
-
-            //フレームに画像を貼り付け
-            grp.DrawImage(orgImg, frameSize, frameSize, baseWidth, baseHeight);
 
             // 画像の保存
             if (!isPortrait)
@@ -183,7 +205,7 @@ namespace Framer
                 framedImg.RotateFlip(RotateFlipType.Rotate270FlipNone);
             }
 
-            EncoderParameters encoder = new(1);
+            using EncoderParameters encoder = new(1);
             encoder.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)99);// JPEGの品質を設定
             string saveFullName = NameGen(savePath, orgName);
             framedImg.Save(saveFullName, MyProperties.jpgCodecInfo, encoder);
@@ -196,6 +218,10 @@ namespace Framer
                 return System.IO.Path.Combine(foderPath, "F" + name);
             }
 
+            // 画像の保存が成功したらtrueを返す
+            return true;
+
+            // EXIF情報を取得するヘルパーメソッド
             static string GetExifValue(BitmapMetadata meta, int hex, string dataType = "string")
             {
                 var raw = meta.GetQuery($"/app1/ifd/exif/{{ushort={hex}}}");
@@ -258,6 +284,11 @@ namespace Framer
             }
         }
 
+        /// <summary>
+        /// JPEGエンコーダの情報を取得するメソッド
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
         public static ImageCodecInfo GetJpgEncorderInfo(Guid guid)
         {
             foreach (ImageCodecInfo item in ImageCodecInfo.GetImageEncoders())
@@ -270,6 +301,9 @@ namespace Framer
             return null;
         }
 
+        /// <summary>
+        /// ウィンドウの初期設定を行うメソッド
+        /// </summary>
         public void SetUp()
         {
             Title = "Framer - Ver." + Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -300,6 +334,10 @@ namespace Framer
             TB_FontSize.Text = Settings1.Default.fontSize.ToString();
         }
 
+        /// <summary>
+        /// システムフォントを取得するメソッド
+        /// </summary>
+        /// <returns></returns>
         public List<MyFonts> GetFonts()
         {
             List<MyFonts> f = new();
@@ -337,18 +375,18 @@ namespace Framer
         private void TB_Color_Back_TextChanged(object sender, TextChangedEventArgs e)
         {
             string backColorValStr = TB_Color_Back.Text;
-            int valARBG = -1;
-            if (backColorValStr.Length == 6 && Int32.TryParse(backColorValStr, System.Globalization.NumberStyles.HexNumber, null, out valARBG))
+            switch (backColorValStr.Length)
             {
-                MyProperties.BackColorARBG = valARBG + Convert.ToInt32("FF000000", 16);
-                Lb_ColorCheck.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF" + backColorValStr));
-                TB_Color_Back.Foreground = new SolidColorBrush(Colors.Black);
-            }
-            else
-            {
-                MyProperties.BackColorARBG = null;
-                Lb_ColorCheck.Background = new SolidColorBrush(Colors.Transparent);
-                TB_Color_Back.Foreground = new SolidColorBrush(Colors.Red);
+                case 6 when int.TryParse(backColorValStr, System.Globalization.NumberStyles.HexNumber, null, out int valARBG):
+                    MyProperties.BackColorARBG = valARBG + Convert.ToInt32("FF000000", 16);
+                    Lb_ColorCheck.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF" + backColorValStr));
+                    TB_Color_Back.Foreground = new SolidColorBrush(Colors.Black);
+                    break;
+                default:
+                    MyProperties.BackColorARBG = null;
+                    Lb_ColorCheck.Background = new SolidColorBrush(Colors.Transparent);
+                    TB_Color_Back.Foreground = new SolidColorBrush(Colors.Red);
+                    break;
             }
         }
 
@@ -356,49 +394,60 @@ namespace Framer
         {
             string frontColorVlaStr = TB_Color_Font.Text;
             int valARBG = -1;
-            if (frontColorVlaStr.Length == 6 && Int32.TryParse(frontColorVlaStr, System.Globalization.NumberStyles.HexNumber, null, out valARBG))
+            switch (frontColorVlaStr.Length)
             {
-                MyProperties.FontColorARGB = valARBG + Convert.ToInt32("FF000000", 16);
-                Lb_ColorCheck.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF" + frontColorVlaStr));
-                TB_Color_Font.Foreground = new SolidColorBrush(Colors.Black);
-            }
-            else
-            {
-                MyProperties.FontColorARGB = null;
-                Lb_ColorCheck.Foreground = new SolidColorBrush(Colors.Black);
-                TB_Color_Font.Foreground = new SolidColorBrush(Colors.Red);
+                case 6 when int.TryParse(frontColorVlaStr, System.Globalization.NumberStyles.HexNumber, null, out valARBG):
+                    MyProperties.FontColorARGB = valARBG + Convert.ToInt32("FF000000", 16);
+                    Lb_ColorCheck.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF" + frontColorVlaStr));
+                    TB_Color_Font.Foreground = new SolidColorBrush(Colors.Black);
+                    break;
+                default:
+                    MyProperties.FontColorARGB = null;
+                    Lb_ColorCheck.Foreground = new SolidColorBrush(Colors.Black);
+                    TB_Color_Font.Foreground = new SolidColorBrush(Colors.Red);
+                    break;
             }
         }
 
         private void Grid_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                string savePath = TB_OutputFolder.Text;
+                return;
+            }
 
-                if(string.IsNullOrEmpty(savePath))
-                {
-                    return;
-                }
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            string savePath = TB_OutputFolder.Text;
+            int allFileCount = files.Length;
+            int successCount = 0;
 
-                if (!System.IO.Directory.Exists(savePath))
-                {
-                    Directory.CreateDirectory(savePath);
-                }
+            if (string.IsNullOrEmpty(savePath))
+            {
+                return;
+            }
 
-                string backColorValStr = TB_Color_Back.Text;
-                int backColorVal = 0;
-                if (backColorValStr.Length != 6 || !Int32.TryParse("FF" + backColorValStr, System.Globalization.NumberStyles.HexNumber, null, out backColorVal))
-                {
-                    return;
-                }
+            if (!System.IO.Directory.Exists(savePath))
+            {
+                Directory.CreateDirectory(savePath);
+            }
 
-                foreach (string item in files)
+            foreach (string item in files)
+            {
+                if (AddFrame(item, savePath))
                 {
-                    AddFrame(item, savePath);
+                    successCount++;
                 }
             }
+
+            MessageBox.Show(
+                $"{allFileCount} files processed.\n" +
+                $"{successCount} files successfully framed.\n" +
+                $"{allFileCount - successCount} files failed to frame.",
+                "Framing Complete",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                MessageBoxResult.OK,
+                MessageBoxOptions.DefaultDesktopOnly);
         }
 
         private void CB_Font_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -410,8 +459,7 @@ namespace Framer
 
         private void TB_FontSize_TextChanged(object sender, TextChangedEventArgs e)
         {
-            int size;
-            if (int.TryParse(TB_FontSize.Text, out size))
+            if (int.TryParse(TB_FontSize.Text, out int size))
             {
                 MyProperties.FontSize = size;
                 TB_FontSize.Foreground = new SolidColorBrush(Colors.Black);
