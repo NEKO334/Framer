@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <Copyright>Arata Suzuki</Copyright>
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <VersionPrefix>1.1.1</VersionPrefix>
     <VersionSuffix>unstable</VersionSuffix>
     <ApplicationIcon>framer.ico</ApplicationIcon>
   </PropertyGroup>

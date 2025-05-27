@@ -13,33 +13,43 @@
     <Grid Margin="1">
         <DockPanel LastChildFill="True">
             <DockPanel DockPanel.Dock="Top" LastChildFill="True">
-                <Label Content="出力フォルダ" Width="100"/>
+                <Label Content="出力フォルダ" Width="125"/>
                 <TextBox x:Name="TB_OutputFolder" VerticalContentAlignment="Center" MinWidth="200" MouseDoubleClick="TBox_OutputFolder_MouseDoubleClick" Margin="0,1,0,1" TextChanged="TB_OutputFolder_TextChanged"/>
             </DockPanel>
             <DockPanel  DockPanel.Dock="Top">
-                <Label Content="背景色[RBG]" Width="100"/>
+                <Label Content="背景色/文字色" Width="125"/>
                 <TextBox x:Name="TB_Color_Back" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1" TextChanged="TB_Color_Back_TextChanged"/>
-            </DockPanel>
-            <DockPanel DockPanel.Dock="Top">
-                <Label Content="文字色[RBG]" Width="100"/>
+                <Label Content="/"/>
                 <TextBox x:Name="TB_Color_Font" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1" TextChanged="TB_Color_Font_TextChanged"/>
+                <Label Content="[RRGGBB]"/>
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
-                <Label Content="フォント" Width="100"/>
-                <ComboBox x:Name="CB_Font" ItemsSource="{Binding}" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center" FontSize="14">
+                <Label Content="フォント/サイズ" Width="125"/>
+                <ComboBox x:Name="CB_Font" Width="250" ItemsSource="{Binding}" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center" FontSize="14">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding fontName}" FontFamily="{Binding fontFamily}" />
+                            <TextBlock Text="{Binding fontName}" FontFamily="{Binding fontFamily}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-            </DockPanel>
-            <DockPanel DockPanel.Dock="Top">
-                <Label Content="フォントサイズ" Width="100"/>
-                <TextBox x:Name="TB_FontSize" Width="80" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1" TextChanged="TB_FontSize_TextChanged"/>
+                <Label Content=" "/>
+                <TextBox x:Name="TB_FontSize" Width="50" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1" TextChanged="TB_FontSize_TextChanged"/>
                 <Label Content="%"/>
             </DockPanel>
-            <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" Height="100"  FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="BIZ UDPMincho Medium"/>
+            <DockPanel DockPanel.Dock="Top">
+                <Label Content="カメラ名" Width="125"/>
+                <TextBox x:Name="TB_CameraMaker"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <Label Content="レンズ名" Width="125"/>
+                <TextBox x:Name="TB_LensName" VerticalContentAlignment="Center" Margin="0,1,0,1"/>    
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" Height="100"  FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="BIZ UDPMincho Medium"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <Label x:Name="L_Status" Margin="0,1,0,1" HorizontalContentAlignment="Center"/>
+            </DockPanel>
         </DockPanel>
     </Grid>
 </Window>

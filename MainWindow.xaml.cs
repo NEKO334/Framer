@@ -76,6 +76,9 @@ namespace Framer
                 return false;
             }
 
+            // 画像の拡張子をチェック
+            // そのうち実装する
+
             string orgName = System.IO.Path.GetFileName(imgPath);
             using FileStream fs = new(imgPath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
@@ -126,8 +129,19 @@ namespace Framer
                 //var fullIfdData = metadata.GetQuery("/app1/ifd");
                 //var fullGpsData = metadata.GetQuery("/app1/ifd/gps");
 
-                string camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}");
-                camera = ModelNameReplace(camera);
+                string camera = TB_CameraMaker.Text;
+                if(string.IsNullOrEmpty(camera))
+                {
+                    camera = (string)metadata.GetQuery("/app1/ifd/{ushort=272}") ?? string.Empty;
+                    camera = ModelNameReplace(camera);
+                }
+                string rens = TB_LensName.Text;
+                if (string.IsNullOrEmpty(rens))
+                {
+                    rens = GetExifValue(metadata, 0xA434, "string") ?? string.Empty;
+                    rens = ModelNameReplace(rens);
+                }
+
                 string shutter = GetExifValue(metadata, 0x829A, "rational");
                 if (!string.IsNullOrEmpty(shutter))
                 {
@@ -150,7 +164,6 @@ namespace Framer
                 }
 
                 string str1;
-                string rens = GetExifValue(metadata, 0xA434, "string");
                 if (string.IsNullOrEmpty(camera) || string.IsNullOrEmpty(rens))
                 {
                     str1 = camera + rens;
@@ -189,8 +202,10 @@ namespace Framer
                     System.Drawing.Rectangle rect2 = new(0, textAreaY + textRectHeght + offset, baseWidth + textRectHeght, textRectHeght);
 
                     MyFonts fontFamily = (MyFonts)CB_Font.SelectedItem;
+
                     using Font font1 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)fontSize, System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 一行目
                     grp.DrawString(str1, font1, brush, rect1, strFormat1);
+
                     using Font font2 = new(new System.Drawing.FontFamily(fontFamily.fontName), (int)(fontSize * 0.8), System.Drawing.FontStyle.Regular, GraphicsUnit.Pixel); // 二行目
                     grp.DrawString(str2, font2, brush, rect2, strFormat2);
                 }
@@ -332,6 +347,8 @@ namespace Framer
             TB_Color_Font.Text = Settings1.Default.fontColor;
             CB_Font.SelectedIndex = Settings1.Default.fontIndex;
             TB_FontSize.Text = Settings1.Default.fontSize.ToString();
+
+            L_Status.Content = "Ready!!";
         }
 
         /// <summary>
@@ -431,23 +448,26 @@ namespace Framer
                 Directory.CreateDirectory(savePath);
             }
 
+            int count = 0;
             foreach (string item in files)
             {
                 if (AddFrame(item, savePath))
                 {
                     successCount++;
                 }
+
+                // ステータスの更新
+                Dispatcher.Invoke(() =>
+                {
+                    L_Status.Content = $"{count} / {allFileCount} files processed.";
+                });
+                count++;
             }
 
-            MessageBox.Show(
-                $"{allFileCount} files processed.\n" +
-                $"{successCount} files successfully framed.\n" +
-                $"{allFileCount - successCount} files failed to frame.",
-                "Framing Complete",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information,
-                MessageBoxResult.OK,
-                MessageBoxOptions.DefaultDesktopOnly);
+            Dispatcher.Invoke(() =>
+            {
+                L_Status.Content = $"{allFileCount} files processed. Sucsess: {successCount}, Failure: {allFileCount - successCount}";
+            });
         }
 
         private void CB_Font_SelectionChanged(object sender, SelectionChangedEventArgs e)
