@@ -23,7 +23,7 @@
     <Setting Name="isUpdate" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="fontSize" Type="System.Int32" Scope="User">
+    <Setting Name="fontSize" Type="System.Double" Scope="User">
       <Value Profile="(Default)">60</Value>
     </Setting>
   </Settings>

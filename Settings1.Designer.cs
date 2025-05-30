@@ -110,9 +110,9 @@ namespace Framer {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("60")]
-        public int fontSize {
+        public double fontSize {
             get {
-                return ((int)(this["fontSize"]));
+                return ((double)(this["fontSize"]));
             }
             set {
                 this["fontSize"] = value;
