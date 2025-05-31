@@ -23,7 +23,7 @@ namespace Framer
             /// <summary>
             /// JPEGエンコーダの情報を取得するための静的プロパティ
             /// </summary>
-            public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
+            //public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
             //public static readonly string[] SupportedImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
         }
 
@@ -46,8 +46,15 @@ namespace Framer
 
             string orgName = System.IO.Path.GetFileName(imgPath);
             using FileStream fs = new(imgPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
             using Bitmap orgImg = new(fs);// 元画像読み込み
+
+            // ファイル種類チェック
+            ImageFormat[] extention = [ImageFormat.Jpeg, ImageFormat.Bmp, ImageFormat.Png, ImageFormat.Tiff];
+            if(!extention.Contains(orgImg.RawFormat))
+            {
+                return false; // 対応していない画像形式
+            }
+
             bool isPortrait = orgImg.Height < orgImg.Width;
             if (!isPortrait)
             {
@@ -184,7 +191,7 @@ namespace Framer
             using EncoderParameters encoder = new(1);
             encoder.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)99);// JPEGの品質を設定
             string saveFullName = NameGen(param.savePath, orgName);
-            framedImg.Save(saveFullName, MyProperties.jpgCodecInfo, encoder);
+            framedImg.Save(saveFullName, jpgCodecInfo, encoder);
 
             // exif情報を保存
             // めんどくさいので後回し
@@ -306,6 +313,57 @@ namespace Framer
             L_Status.Content = "Ready!!";
         }
 
+        /// <summary>
+        /// カメラ、レンズ名を読み込むメソッド
+        /// </summary>
+        public void LoadLensName()
+        {
+            /*
+            if (!File.Exists("CameraName.txt"))
+            {
+                using StreamWriter sw = new("CameraName.txt", false, System.Text.Encoding.UTF8);
+            }
+            if (!File.Exists("LensName.txt"))
+            {
+                using StreamWriter sw = new("LensName.txt", false, System.Text.Encoding.UTF8);
+            }
+            */
+
+            FileStreamOptions fsOptions = new()
+            {
+                Access = FileAccess.Read,
+                Mode = FileMode.OpenOrCreate,
+                Share = FileShare.ReadWrite
+            };
+            // カメラ名の読み込み
+            using StreamReader sr = new("CameraName.txt", System.Text.Encoding.UTF8, true, fsOptions);
+            CB_CameraMaker.Items.Clear();
+            CB_CameraMaker.Items.Add("(AUTO)"); // 初期選択を"(AUTO)"に設定
+            CB_CameraMaker.SelectedIndex = 0;
+            while (!sr.EndOfStream)
+            {
+                string line = sr.ReadLine().Trim();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    CB_CameraMaker.Items.Add(line);
+                }
+            }
+
+            // レンズ名の読み込み
+            using StreamReader sr2 = new("LensName.txt", System.Text.Encoding.UTF8, true, fsOptions);
+            CB_LensName.Items.Clear();
+            CB_LensName.Items.Add("(AUTO)");// 初期選択を"(AUTO)"に設定
+            CB_LensName.SelectedIndex = 0;
+            while (!sr2.EndOfStream)
+            {
+                string line = sr2.ReadLine().Trim();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    CB_LensName.Items.Add(line);
+                }
+            }
+        }
+
         public class MyFonts
         {
             public System.Windows.Media.FontFamily family { get; set; }
@@ -340,6 +398,8 @@ namespace Framer
         {
             InitializeComponent();
             SetUp();
+            LoadLensName();
+
         }
 
         private void TBox_OutputFolder_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -477,6 +537,15 @@ namespace Framer
                 return;
             }
 
+            if (CB_CameraMaker.SelectedItem is string cameraName && cameraName != "(AUTO)")
+            {
+                param.cameraName = cameraName;
+            }
+            if (CB_LensName.SelectedItem is string lensName && lensName != "(AUTO)")
+            {
+                param.lensName = lensName;
+            }
+
             // ドロップされたデータがファイルであるか確認
             if (!e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -536,5 +605,32 @@ namespace Framer
             Settings1.Default.fontIndex = CB_Font.SelectedIndex;
             Settings1.Default.Save();
         }
+
+        private void B_CameraTxtOpen_Click(object sender, RoutedEventArgs e)
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "CameraName.txt",
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo);
+            process.WaitForExit(); // プロセスが終了するまで待機
+            LoadLensName(); // レンズ名を再読み込み
+        }
+
+        private void B_LensTxtOpen_Click(object sender, RoutedEventArgs e)
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "LensName.txt",
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo);
+            process.WaitForExit(); // プロセスが終了するまで待機
+            LoadLensName(); // レンズ名を再読み込み
+        }
+
     }
 }

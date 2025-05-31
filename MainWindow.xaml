@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Framer"
         Height="auto" Width="auto"
-        MinHeight=" 20" MinWidth="450"
+        MinHeight="100" MinWidth="450"
         AllowDrop="True"  Drop="Grid_Drop"
         Closing="Window_Closing">
     <Grid Margin="1">
@@ -25,30 +25,31 @@
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Content="フォント/サイズ" Width="125"/>
-                <ComboBox x:Name="CB_Font" Width="250" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center" FontSize="14">
+                <Label DockPanel.Dock="Right" Content="%"/>
+                <TextBox DockPanel.Dock="Right" x:Name="TB_FontSize" Width="50" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1"/>
+                <ComboBox x:Name="CB_Font" SelectionChanged="CB_Font_SelectionChanged" VerticalContentAlignment="Center" FontSize="14" Margin="0,1,0,1">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding name}" FontFamily="{Binding family}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Label Content=" "/>
-                <TextBox x:Name="TB_FontSize" Width="50" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,1,0,1"/>
-                <Label Content="%"/>
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Content="カメラ名" Width="125"/>
-                <TextBox x:Name="TB_CameraMaker"/>
+                <Button DockPanel.Dock="Right" x:Name="B_CameraTxtOpen" Content="開く" Width="50" Margin="0,1,0,1" HorizontalAlignment="Right" Click="B_CameraTxtOpen_Click"/>
+                <ComboBox x:Name="CB_CameraMaker" Margin="0,1,0,1" />
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Content="レンズ名" Width="125"/>
-                <TextBox x:Name="TB_LensName" VerticalContentAlignment="Center" Margin="0,1,0,1"/>    
+                <Button DockPanel.Dock="Right" x:Name="B_LensTxtOpen" Content="開く" Width="50" Margin="0,1,0,1" HorizontalAlignment="Right" Click="B_LensTxtOpen_Click"/>
+                <ComboBox x:Name="CB_LensName" Margin="0,1,0,1" />
             </DockPanel>
-            <DockPanel DockPanel.Dock="Top">
-                <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" Height="100"  FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-            </DockPanel>
-            <DockPanel DockPanel.Dock="Top">
+            <DockPanel DockPanel.Dock="Bottom">
                 <Label x:Name="L_Status" Margin="0,1,0,1" HorizontalContentAlignment="Center"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" MinHeight="100" FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             </DockPanel>
         </DockPanel>
     </Grid>
