@@ -616,6 +616,11 @@ namespace Framer
             LoadLensName(); // レンズ名を再読み込み
         }
 
+        /// <summary>
+        /// レンズ名、カメラ名の更新
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void B_LensTxtOpen_Click(object sender, RoutedEventArgs e)
         {
             var startInfo = new System.Diagnostics.ProcessStartInfo
