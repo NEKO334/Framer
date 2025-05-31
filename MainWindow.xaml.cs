@@ -567,9 +567,6 @@ namespace Framer
                         successCount++;
                     }
                     count++;
-
-                    Thread.Sleep(1000);
-
                     // ステータスの更新
 
                     Dispatcher.Invoke(() =>
