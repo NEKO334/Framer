@@ -16,17 +16,8 @@ namespace Framer
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// アプリケーションのプロパティを保持するクラス
+        /// JPEGエンコーダの情報を取得するための静的フィールド
         /// </summary>
-        public static class MyProperties
-        {
-            /// <summary>
-            /// JPEGエンコーダの情報を取得するための静的プロパティ
-            /// </summary>
-            //public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
-            //public static readonly string[] SupportedImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
-        }
-
         public static readonly ImageCodecInfo jpgCodecInfo = GetJpgEncorderInfo(ImageFormat.Jpeg.Guid);
 
         /// <summary>
@@ -272,7 +263,7 @@ namespace Framer
         /// </summary>
         /// <param name="guid"></param>
         /// <returns></returns>
-        public static ImageCodecInfo GetJpgEncorderInfo(Guid guid)
+        public static ImageCodecInfo? GetJpgEncorderInfo(Guid guid)
         {
             foreach (ImageCodecInfo item in ImageCodecInfo.GetImageEncoders())
             {

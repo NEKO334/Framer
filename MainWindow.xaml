@@ -49,7 +49,7 @@
                 <Label x:Name="L_Status" Margin="0,1,0,1" HorizontalContentAlignment="Center"/>
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
-                <Label x:Name="Lb_ColorCheck" Content="Nikkor 50mm f/1.4" MinHeight="100" FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                <Label x:Name="Lb_ColorCheck" Content="ここに画像をドロップ&#10;NIKKOR ZMC105mm f2.8" MinHeight="100" FontSize="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             </DockPanel>
         </DockPanel>
     </Grid>
